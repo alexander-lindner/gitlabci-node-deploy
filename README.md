@@ -1,3 +1,34 @@
 # gitlabci-node-deploy
 
-append later
+This is a simple docker image for automatic build and deployment of node websites. I use it to automate my website using gitlab and it's ci. It contains node, npm, yarn and lftp.
+## Example
+.gitlab-ci.yml
+```markdown
+image: alexanderlindner/gitlabci-node-deploy
+stages:
+- build
+
+services:
+
+cache:
+  paths:
+  - node_modules/
+
+build:
+  stage: build
+  script:
+   - yarn
+   - yarn run build
+   - echo "set ssl:verify-certificate false" > ~/.lftprc
+   - >
+    cd dist && PASSWORD=$PASSWORD USERNAME=$USERNAME HOST=$HOST lftp -c " \
+      set ftp:ssl-allow yes; \
+      open -u $USERNAME,$PASSWORD $HOST; \
+      mirror -pr static /static --parallel=10 \
+      mirror -pr index.html /index.html \
+       "
+   - echo "finished"
+  only:
+    - master
+ ```   
+ The build script is provided by [vue](https://cli.vuejs.org/) 
